@@ -1,8 +1,9 @@
-FROM python:3.9-slim
-WORKDIR /app
-COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+FROM python:3.10-slim
+WORKDIR/app
+RUN pip install poetry
+COPY pyproject.toml poetry.lock ./
+RUN poetry config virtualenvs.create false \
+    && poetry install --no root
 COPY ..
 EXPOSE 8000
-CMD ["python", "your_server_script.py"]
-
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

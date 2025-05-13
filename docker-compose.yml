@@ -1,0 +1,91 @@
+version: '3.8'
+services:
+  client:
+    build: ./client
+    container_name : react-app
+    ports:
+      - "3000:80"
+    volumes:
+      - ./client:/app
+      -/app/node_modules
+    depends_on:
+      - server
+    networks:
+      - app-network
+  server:
+    build9 ./server
+    container_name: django-app
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./server:/app
+    environment:
+      - DJANGO_SETTINGS_MODULE=myproject.settings.prod
+      -DATABASE_URL=postgres://dbuser:dbpass@db:5432/mydb
+    depends_on:
+      -db
+    networks:
+      - app-network
+ db:
+   image: postgres:13
+   container_name: postgres-db
+    volumes:
+      -postgres_data:/var/lib/postgresql/data/
+    environment:
+      -POSTGRES_USER=dbuser
+      -POSTGRES_PASSWORD=dbpass
+      -POSTGRES_DB=mydb
+    networks:
+      - app-network
+
+ prometheus:
+   build: /monitoring/prometheus
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - /monitoring/prometheusyml:/etc/prometheus/prometheus
+    depends_on:
+      - server   
+    networks:
+    - app-network
+ grafana:
+   build: /monitoring/grafana
+   container_name: grafana
+   ports:
+     - "3001:3000"
+   volumes:
+     - grafana_data:/var/lib/grafana
+   depends_on:
+     - prometheus
+    networks:
+      - app-network
+ proxy:
+   build: ./proxy
+   container_name: nginx-proxy
+   ports:
+     - "80:80"
+   depends_on:
+     - client
+     - server
+     - grafana
+   networks:
+     - app-network
+ volumes:
+   - postgres_data:
+   - grafana_data:
+
+ networks:
+   app-network
+     driver: bridge
+
+
+
+
+
+
+
+
+
+
+
