@@ -1,0 +1,29 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [dev, master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/dev'
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Run unit tests
+      run: echo "Running unit tests..." # Nous remplacerons ceci plus tard
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Deploy to production
+      run: echo "Deploying to production..." # Nous remplacerons ceci plus tard
