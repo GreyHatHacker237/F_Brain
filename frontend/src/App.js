@@ -13,6 +13,7 @@ function App() {
           <Link to="/">Convertisseur</Link> |
           <Link to="/history">Historique</Link>
         </nav>
+
         <Routes>
           <Route path="/" element={<CurrencyConverter />} />
           <Route path="/history" element={<ConversionHistory />} />
