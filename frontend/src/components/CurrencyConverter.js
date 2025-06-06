@@ -6,8 +6,8 @@ function CurrencyConverter() {
   const [fromCurrency, setFromCurrency] = useState('EUR');
   const [toCurrency, setToCurrency] = useState('XOF');
   const [result, setResult] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const currencies = ['EUR', 'XOF', 'GBP', 'CNY'];
 
@@ -21,20 +21,13 @@ function CurrencyConverter() {
     setError(null);
     
     try {
-      const conversion = await convertCurrency(fromCurrency, toCurrency, amount);
-      setResult(conversion.converted_amount);
-    } catch (error) {
-      console.error("Erreur de conversion:", error);
-      setError("Erreur lors de la conversion. Veuillez réessayer.");
+      const data = await convertCurrency(fromCurrency, toCurrency, amount);
+      setResult(data.converted_amount);
+    } catch (err) {
+      setError(err.message);
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleSwapCurrencies = () => {
-    setFromCurrency(toCurrency);
-    setToCurrency(fromCurrency);
-    setResult(null);
   };
 
   return (
@@ -48,7 +41,7 @@ function CurrencyConverter() {
             type="number"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            min="0"
+            min="0.01"
             step="0.01"
           />
         </div>
@@ -68,14 +61,6 @@ function CurrencyConverter() {
             </select>
           </div>
 
-          <button
-            className="swap-btn"
-            onClick={handleSwapCurrencies}
-            aria-label="Inverser les devises"
-          >
-            ⇄
-          </button>
-
           <div className="selector">
             <label>À :</label>
             <select
@@ -91,8 +76,7 @@ function CurrencyConverter() {
           </div>
         </div>
 
-        <button
-          className="convert-btn"
+        <button 
           onClick={handleConvert}
           disabled={isLoading}
         >
@@ -106,7 +90,7 @@ function CurrencyConverter() {
         <div className="result-display">
           <h3>Résultat :</h3>
           <p>
-            {amount} {fromCurrency} = {result.toFixed(2)} {toCurrency}
+            {amount} {fromCurrency} = {result} {toCurrency}
           </p>
         </div>
       )}

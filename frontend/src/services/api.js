@@ -1,36 +1,31 @@
-// frontend/src/services/api.js
-const API_BASE_URL = 'http://localhost:8000'; // Nous changerons cela plus tard
-
 export const convertCurrency = async (from, to, amount) => {
-  // Simulation en attendant le backend
-  const mockRates = {
-    'EUR-XOF': 655.96,
-    'XOF-EUR': 0.0015,
-    'EUR-GBP': 0.86,
-    'GBP-EUR': 1.16,
-    // Ajoute d'autres taux mockés si nécessaire
-  };
+  const response = await fetch('http://localhost:8000/api/convert/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCSRFToken(), // Fonction à implémenter
+    },
+    body: JSON.stringify({
+      from_currency: from,
+      to_currency: to,
+      amount: amount
+    }),
+    credentials: 'include' // Pour les cookies de session
+  });
   
-  const rate = mockRates[`${from}-${to}`] || 1;
-  return {
-    original_amount: amount,
-    from_currency: from,
-    to_currency: to,
-    converted_amount: amount * rate,
-    rate: rate
-  };
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message);
+  }
+  
+  return response.json();
 };
 
-export const getConversionHistory = async () => {
-  // Simulation
-  return [
-    {
-      id: 1,
-      amount: 10,
-      from_currency: 'EUR',
-      to_currency: 'XOF',
-      converted_amount: 6559.6,
-      date: '2023-05-20'
-    }
-  ];
-};
+// Fonction helper pour le CSRF
+function getCSRFToken() {
+  const cookieValue = document.cookie
+    .split('; ')
+    .find(row => row.startsWith('csrftoken='))
+    ?.split('=')[1];
+  return cookieValue;
+}

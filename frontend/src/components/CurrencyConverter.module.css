@@ -1,0 +1,61 @@
+.converter-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.converter-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.currency-selectors {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.input-group, .selector {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+input, select {
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+button {
+  padding: 10px 15px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button:disabled {
+  background-color: #cccccc;
+}
+
+.swap-btn {
+  background-color: #2196F3;
+  padding: 5px 10px;
+}
+
+.error-message {
+  color: #f44336;
+  margin-top: 10px;
+}
+
+.result-display {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+}
