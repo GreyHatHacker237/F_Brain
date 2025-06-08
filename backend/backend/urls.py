@@ -1,6 +1,11 @@
+from django.contrib import admin
 from django.urls import path
-from .views import ConvertCurrency
+from converter import views
 
 urlpatterns = [
-    path('api/convert/', ConvertCurrency.as_view(), name='convert'),
+    path('admin/', admin.site.urls),  # Interface d'administration
+    path('convert/', views.currency_conversion, name='convert'),
+    path('history/', views.conversion_history, name='history'),
+    path('login/', views.user_login, name='login'),
+   
 ]

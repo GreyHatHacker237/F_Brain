@@ -1,101 +1,120 @@
-import React, { useState } from 'react';
-import { convertCurrency } from '../services/api';
+// CurrencyConverter.js
+import React, { useState, useEffect } from 'react';
 
-function CurrencyConverter() {
-  const [amount, setAmount] = useState(1);
-  const [fromCurrency, setFromCurrency] = useState('EUR');
-  const [toCurrency, setToCurrency] = useState('XOF');
-  const [result, setResult] = useState(null);
-  const [error, setError] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+const CurrencyConverter = () => {
+    const [amount, setAmount] = useState(1);
+    const [fromCurrency, setFromCurrency] = useState('EUR');
+    const [toCurrency, setToCurrency] = useState('USD');
+    const [convertedAmount, setConvertedAmount] = useState(0);
+    const [history, setHistory] = useState([]);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [credentials, setCredentials] = useState({ username: '', password: '' });
 
-  const currencies = ['EUR', 'XOF', 'GBP', 'CNY'];
+    const fetchHistory = async () => {
+        try {
+            const response = await fetch('/history/');
+            const data = await response.json();
+            setHistory(data.history);
+        } catch (error) {
+            console.error('Error fetching history:', error);
+        }
+    };
 
-  const handleConvert = async () => {
-    if (!amount || amount <= 0) {
-      setError("Veuillez entrer un montant valide");
-      return;
-    }
+    const handleConvert = async () => {
+        try {
+            const response = await fetch('/convert/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    amount,
+                    from_currency: fromCurrency,
+                    to_currency: toCurrency
+                })
+            });
+            
+            const data = await response.json();
+            if (data.error) throw new Error(data.error);
+            
+            setConvertedAmount(data.converted_amount);
+            if (isLoggedIn) fetchHistory();
+        } catch (error) {
+            console.error('Conversion error:', error);
+        }
+    };
 
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      const data = await convertCurrency(fromCurrency, toCurrency, amount);
-      setResult(data.converted_amount);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    const handleLogin = async () => {
+        try {
+            const response = await fetch('/login/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(credentials)
+            });
+            
+            const data = await response.json();
+            if (data.status === 'success') {
+                setIsLoggedIn(true);
+                fetchHistory();
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+        }
+    };
 
-  return (
-    <div className="converter-container">
-      <h2>Convertisseur de Devise</h2>
-      
-      <div className="converter-form">
-        <div className="input-group">
-          <label>Montant :</label>
-          <input
-            type="number"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            min="0.01"
-            step="0.01"
-          />
+    return (
+        <div>
+            {!isLoggedIn ? (
+                <div>
+                    <input
+                        type="text"
+                        placeholder="Username"
+                        value={credentials.username}
+                        onChange={(e) => setCredentials({...credentials, username: e.target.value})}
+                    />
+                    <input
+                        type="password"
+                        placeholder="Password"
+                        value={credentials.password}
+                        onChange={(e) => setCredentials({...credentials, password: e.target.value})}
+                    />
+                    <button onClick={handleLogin}>Login</button>
+                </div>
+            ) : (
+                <div>
+                    <input
+                        type="number"
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                    />
+                    <select value={fromCurrency} onChange={(e) => setFromCurrency(e.target.value)}>
+                        <option value="EUR">EUR</option>
+                        <option value="USD">USD</option>
+                    </select>
+                    →
+                    <select value={toCurrency} onChange={(e) => setToCurrency(e.target.value)}>
+                        <option value="USD">USD</option>
+                        <option value="EUR">EUR</option>
+                    </select>
+                    <button onClick={handleConvert}>Convert</button>
+                    
+                    <h3>Result: {convertedAmount} {toCurrency}</h3>
+                    
+                    <h4>History:</h4>
+                    <ul>
+                        {history.map((item, index) => (
+                            <li key={index}>
+                                {item.amount} {item.from_currency} → {item.result} {item.to_currency}
+                                (Rate: {item.rate}) - {item.date}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
         </div>
-
-        <div className="currency-selectors">
-          <div className="selector">
-            <label>De :</label>
-            <select
-              value={fromCurrency}
-              onChange={(e) => setFromCurrency(e.target.value)}
-            >
-              {currencies.map(currency => (
-                <option key={`from-${currency}`} value={currency}>
-                  {currency}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="selector">
-            <label>À :</label>
-            <select
-              value={toCurrency}
-              onChange={(e) => setToCurrency(e.target.value)}
-            >
-              {currencies.map(currency => (
-                <option key={`to-${currency}`} value={currency}>
-                  {currency}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <button 
-          onClick={handleConvert}
-          disabled={isLoading}
-        >
-          {isLoading ? 'Conversion en cours...' : 'Convertir'}
-        </button>
-      </div>
-
-      {error && <div className="error-message">{error}</div>}
-
-      {result && (
-        <div className="result-display">
-          <h3>Résultat :</h3>
-          <p>
-            {amount} {fromCurrency} = {result} {toCurrency}
-          </p>
-        </div>
-      )}
-    </div>
-  );
-}
+    );
+};
 
 export default CurrencyConverter;

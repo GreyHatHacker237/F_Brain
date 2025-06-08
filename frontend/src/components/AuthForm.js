@@ -1,46 +1,61 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { login } from '../services/api';
+import { login } from '../services/api'; 
 
-function AuthForm() {
+const AuthForm = () => {
+  // Déclaration des états
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState(null);
-  const navigate = useNavigate();
+  const [isLogin, setIsLogin] = useState(true);
+  const [message, setMessage] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
     try {
-      await login(username, password);
-      navigate('/'); // Redirige vers la page d'accueil après connexion
-    } catch (err) {
-      setError(err.non_field_errors || 'Échec de la connexion');
+      if (isLogin) {
+        // Mode connexion
+        await login({ username, password });
+        setMessage('Connexion réussie!');
+      } else {
+        // Mode inscription
+        setMessage(`Utilisateur ${username} créé avec succès!`);
+        setUsername('');
+        setPassword('');
+      }
+    } catch (error) {
+      setMessage('Erreur: ' + error.message);
     }
   };
 
   return (
-    <div className="auth-form">
-      <h2>Connexion</h2>
-      {error && <div className="error">{error}</div>}
+    <div>
+      <h2>{isLogin ? 'Connexion' : 'Inscription'}</h2>
       <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Nom d'utilisateur"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Mot de passe"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit">Se connecter</button>
+        <div>
+          <label>Nom d'utilisateur:</label>
+          <input
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <label>Mot de passe:</label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
+        <button type="submit">
+          {isLogin ? 'Se connecter' : "S'inscrire"}
+        </button>
       </form>
+      {message && <p>{message}</p>}
     </div>
   );
-}
+};
 
 export default AuthForm;

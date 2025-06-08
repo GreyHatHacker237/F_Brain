@@ -1,61 +1,38 @@
 from django.http import JsonResponse
-from django.views import View
-from django.core.exceptions import ValidationError
-from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
-from .models import ConversionRate, ConversionHistory
-import json
-import requests
-from datetime import datetime, timedelta
+from django.contrib.auth import authenticate, login
+from .models import Conversion  # Si vous avez ce modèle
 
-class ConvertCurrency(View):
-    @method_decorator(login_required)
-    def post(self, request):
-        try:
-            data = json.loads(request.body)
-            from_currency = data.get('from_currency')
-            to_currency = data.get('to_currency')
-            amount = float(data.get('amount', 0))
-            
-            # Validation
-            if amount <= 0:
-                raise ValidationError("Le montant doit être positif")
-            
-            # Récupération du taux
-            rate = self.get_exchange_rate(from_currency, to_currency)
-            converted_amount = amount * rate
-            
-            # Sauvegarde historique
-            ConversionHistory.objects.create(
-                user=request.user,
-                amount=amount,
-                from_currency=from_currency,
-                to_currency=to_currency,
-                converted_amount=converted_amount,
-                rate=rate
-            )
-            
-            return JsonResponse({
-                'status': 'success',
-                'converted_amount': round(converted_amount, 2),
-                'rate': rate
-            })
-            
-        except Exception as e:
-            return JsonResponse({
-                'status': 'error',
-                'message': str(e)
-            }, status=400)
+def home(request):
+    return HttpResponse("Bienvenue sur l'application")
 
-    def get_exchange_rate(self, from_currency, to_currency):
-        """Logique pour obtenir le taux de change"""
-        # Implémentez votre logique ici
-        default_rates = {
-            'EUR-XOF': 655.96,
-            'XOF-EUR': 0.00152,
-            'EUR-GBP': 0.86,
-            'GBP-EUR': 1.16,
-            'EUR-CNY': 7.83,
-            'CNY-EUR': 0.13
+def currency_conversion(request):
+    """Gère la conversion de devises"""
+    if request.method == 'POST':
+        # Exemple basique (à adapter)
+        data = {
+            'amount': float(request.POST.get('amount', 0)),
+            'from_currency': request.POST.get('from_currency'),
+            'to_currency': request.POST.get('to_currency')
         }
-        return default_rates.get(f"{from_currency}-{to_currency}", 1.0)
+        # Ici, ajoutez votre logique de conversion
+        return JsonResponse({'converted_amount': data['amount'] * 1.2})  # Exemple
+    
+    return JsonResponse({'error': 'Méthode non autorisée'}, status=405)
+
+def conversion_history(request):
+    """Retourne l'historique des conversions"""
+    if request.user.is_authenticated:
+        history = Conversion.objects.filter(user=request.user).values()  # Exemple
+        return JsonResponse({'history': list(history)})
+    return JsonResponse({'error': 'Non authentifié'}, status=401)
+
+def user_login(request):
+    """Gère l'authentification"""
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        if user:
+            login(request, user)
+            return JsonResponse({'status': 'success'})
+    return JsonResponse({'error': 'Identifiants invalides'}, status=401)

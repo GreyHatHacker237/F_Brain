@@ -26,3 +26,4 @@ function ConversionHistory() {
     </div>
   );
 }
+export default ConversionHistory;

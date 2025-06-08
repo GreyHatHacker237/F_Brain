@@ -16,13 +16,13 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',  # Corrigé
-    'rest_framework',
+    'django.contrib.staticfiles',
     'corsheaders',
-    'converter',  # Ton app
+    'converter',  # Votre application
 ]
 
 MIDDLEWARE = [  # Corrigé
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',  # Ajouté
@@ -31,7 +31,12 @@ MIDDLEWARE = [  # Corrigé
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    
 ]
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+]
+
 
 ROOT_URLCONF = 'backend.urls'
 
